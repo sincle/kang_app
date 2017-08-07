@@ -1,11 +1,11 @@
-package com.haieros.kang_app;
+package com.haieros.kang_app.rxjava;
 
+import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
 import android.util.Log;
 
 import com.google.gson.Gson;
-import com.haieros.kang_app.rxjava.MobileAddress;
-
-import org.junit.Test;
+import com.haieros.kang_app.R;
 
 import java.util.concurrent.TimeUnit;
 
@@ -23,30 +23,33 @@ import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 
-import static org.junit.Assert.assertEquals;
+public class MainActivity extends AppCompatActivity {
 
-/**
- * To work on unit tests, switch the Test Artifact in the Build Variants view.
- */
-public class ExampleUnitTest {
-    private static final String TAG = ExampleUnitTest.class.getSimpleName();
+    private static final String TAG = MainActivity.class.getSimpleName();
     private OkHttpClient okHttpClient = new OkHttpClient.Builder()
             .connectTimeout(10, TimeUnit.SECONDS)
             .readTimeout(10, TimeUnit.SECONDS)
             .build();
     ;
 
-    @Test
-    public void addition_isCorrect() throws Exception {
-        assertEquals(4, 2 + 2);
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+       // method1();
+        method2();
     }
 
-    @Test
-    public void method() {
+    private void method2() {
+
+    }
+
+    public void method1() {
         Observable.create(new ObservableOnSubscribe<Response>() {
             @Override
             public void subscribe(@NonNull ObservableEmitter<Response> e) throws Exception {
 
+                Log.e(TAG, "subscribe 发送 "+"---------------"+Thread.currentThread().getName());
                 Request.Builder builder = new Request.Builder()
                         .url("http://api.avatardata.cn/MobilePlace/LookUp?key=ec47b85086be4dc8b5d941f5abd37a4e&mobileNumber=13021671512")
                         .get();
@@ -64,10 +67,17 @@ public class ExampleUnitTest {
                 if (response.isSuccessful()) {
 
                     ResponseBody body = response.body();
-                    Log.e(TAG, "body:" + body);
                     if (body != null) {
-                        Log.e(TAG, "map:转换前:" + response.body());
-                        return new Gson().fromJson(body.toString(), MobileAddress.class);
+                        String result = body.string();
+                        Log.e(TAG, "map:转换前:" + result);
+                        MobileAddress mobileAddress = new Gson().fromJson(result, MobileAddress.class);
+
+                        if(mobileAddress != null) {
+
+                            Log.e(TAG, "mobileAddress:" + "-------"+mobileAddress.toString());
+                        }
+                        Log.e(TAG, "==================");
+                        return mobileAddress;
                     }
                     return null;
                 }
@@ -82,7 +92,7 @@ public class ExampleUnitTest {
                     }
                 })
                 .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+                //.observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Consumer<MobileAddress>() {
                     @Override
                     public void accept(@NonNull MobileAddress mobileAddress) throws Exception {
